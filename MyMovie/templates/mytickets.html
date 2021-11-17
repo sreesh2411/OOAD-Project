@@ -1,0 +1,59 @@
+{%extends "layout.html"%}
+{%block styles%}
+<link rel="stylesheet" href="/static/movies.css">
+<style>
+.bg {
+   width: 30rem;
+   height: 30rem;
+   display: flex;
+   padding: 1rem;
+   align-items: center;
+   justify-content: center;
+   background-color: #1a1a1a;
+   color: white;
+   background-size: cover;
+   background-repeat: no-repeat;
+   background-position: center;
+}
+.bg h3 {
+   font-size: 10rem;
+}
+.book {
+   padding: 1rem;
+   margin: auto;
+   border: 1px solid #1a1a1a;
+   width: 60rem;
+}
+.booking {
+   margin-top: 2rem;
+
+}
+</style>
+{%endblock%}
+
+{%block content%}
+{%include "navbar.html"%}
+<main>
+   <h1 class="text-center">Your Bookings</h1>
+   <div class="booking">
+   {%for b in booking%}
+   
+   <div class="book" data-i="{{loop.index-1}}">
+      <a class="h3 text-decoration-none text-dark" href="/movie/{{b['mid']}}" >{{b['name']}}</a>
+      <h4>{{b["showdate"].strftime("%B %d")}}</h4>
+      <h5>{{b["tickets"]|length}} tickets</h5>
+      <h6>Price: {{b['cost']}}</h6>
+      <button>Cancel Booking</button>
+   </div>
+   {%endfor%}
+</main>
+<script>
+   document.querySelectorAll(".book button").forEach(v=>{
+      const d = v.parentElement.getAttribute("data-i")
+      v.addEventListener("click",async()=>{
+         await postRequest("/cancel/"+d)
+         v.parentElement.parentElement.removeChild(v.parentElement)
+      })
+   })
+</script>
+{%endblock%}

@@ -1,0 +1,102 @@
+{%extends "layout.html"%}
+{%block styles%}
+<link rel="stylesheet" href="/static/movies.css">
+<style>
+.bg {
+   width: 30rem;
+   height: 30rem;
+   display: flex;
+   padding: 1rem;
+   align-items: center;
+   justify-content: center;
+   background-color: #1a1a1a;
+   color: white;
+   background-size: cover;
+   background-repeat: no-repeat;
+   background-position: center;
+}
+.bg h3 {
+   font-size: 10rem;
+}
+.show {
+   display: inline-block;
+   padding: 1rem;
+   margin: 1rem;
+   text-align: center;
+   border: 1px solid wheat;
+}
+</style>
+{%endblock%}
+
+{%block content%}
+{%include "navbar.html"%}
+<main>
+   <h1>Add a Movie</h1>
+   <input type="text" id="imdbid">
+   <button id="search">Search</button>
+
+   <div class="container mt-5" style="display: none;" id="mdata">
+      <div class="row">
+         <div class="col">
+            <div class="bg" id="bg">
+            </div>
+         </div>
+         <div class="col">
+            <h3 id="name">Name: </h3>
+            <h3 id="runtime">Runtime: </h3>
+            <h3 id="language">Language: </h3>
+            <h3 >Plot</h3>
+            <p id="plot"></p>
+            <button id="addm">Add This Movie</button>
+            <a style="display: none;" id="link" href="">Go to Movie</a>
+         </div>
+      </div>
+     
+   </div>
+</main>
+<script>
+   let mdata = document.getElementById("mdata")
+   let imdbId =document.getElementById("imdbid")
+   async function searchMovie(){
+      if (!imdbId.value){
+         return
+      }
+      let m = await getRequest("/searchid/"+imdbId.value)
+      console.log(m)
+      if (m.status!=200){
+         return toastr.error("Not found")
+      }
+      m = await m.json()
+      console.log(m)
+      document.getElementById("bg").style.backgroundImage = `url(${m.Poster})`
+      document.getElementById("name").innerHTML ="Name: "+ m.Title
+      document.getElementById("runtime").innerHTML ="Runtime: "+ m.Runtime
+      document.getElementById("language").innerHTML ="Language: "+m.Language
+      document.getElementById("plot").innerHTML = m.Plot
+      mdata.style.display = "block"
+   }
+
+   async function addMovie(){
+      if (!imdbId.value){
+         return
+      }
+      let m = await postRequest("/addmovie/"+imdbId.value)
+      console.log(m)
+      if (!m['err']){
+         if (m.data['new']){
+            toastr.success("Added Movie")
+         }
+         else {
+            toastr.info("Movie already exists")
+         }
+         document.getElementById("link").style.display='block'
+         document.getElementById("link").setAttribute('href',`/movie/${m.data.data['_id']['$oid']}` )
+      }
+      else {
+         toastr.error(m['err'])
+      }
+   }
+   document.getElementById("search").onclick = searchMovie
+   document.getElementById("addm").onclick = addMovie;
+</script>
+{%endblock%}

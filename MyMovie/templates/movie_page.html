@@ -1,0 +1,86 @@
+{%extends "layout.html"%}
+{%block styles%}
+<link rel="stylesheet" href="/static/movies.css">
+<style>
+.bg {
+   width: 30rem;
+   height: 30rem;
+   display: flex;
+   padding: 1rem;
+   align-items: center;
+   justify-content: center;
+   background-color: #1a1a1a;
+   color: white;
+   background-size: cover;
+   background-repeat: no-repeat;
+   background-position: center;
+}
+.bg h3 {
+   font-size: 10rem;
+}
+.show {
+   display: inline-block;
+   padding: 1rem;
+   margin: 1rem;
+   text-align: center;
+   border: 1px solid wheat;
+}
+.show:hover {
+   cursor: pointer;
+}
+</style>
+{%endblock%}
+
+{%block content%}
+{%include "navbar.html"%}
+<main>
+   <h1>{{movie.data['Title']}}</h1>
+   <div class="container mt-5">
+      <div class="row">
+         <div class="col">
+            <div class="bg" style="background-image: url({{movie.data['Poster']}});">
+               <!-- <h3>{{movie.data['Title'][:2]}}</h3> -->
+            </div>
+         </div>
+         <div class="col">
+            <h3>Runtime: {{movie.data['Runtime']}}</h3>
+            <h3>Language: {{movie.data['Language']}}</h3>
+            <h3>Plot</h3>
+            <p>{{movie.data['Plot']}}</p>
+            <div>
+               {%if admin%}
+                  <a class="btn-primary btn" href="{{movie.data['_id']}}/addshow">Add Show</a>
+                  <button id="removeMovie" class="btn btn-danger">Remove Movie</button>
+               {%endif%}
+            </div>
+         </div>
+      </div>
+   </div>
+   <h1 class="mt-5">Shows</h1>
+   <div class="shows">
+      {%if 'shows' in movie.data%}
+      {% for s in movie.data['shows']|sort_shows %}
+      <div class="show" data-i="{{loop.index-1}}">
+         <h3>{{s["date"].strftime("%B %d")}}</h2>
+         <h4>{{s['slot']}}</h3>
+      </div>
+      {%endfor%}
+      {%endif%}
+      
+   </div>
+</main>
+<script>
+   var mid = "{{movie.data['_id']}}"
+   document.querySelectorAll(".show").forEach(s=>{
+      s.addEventListener("click",()=>{
+         const sid = s.getAttribute("data-i")
+         window.location = `${mid}/${sid}`
+      })
+      
+   })
+   document.querySelector("#removeMovie").addEventListener("click",async ()=>{
+      await postRequest("/remove/"+mid)
+      window.location = "/"
+   })
+</script>
+{%endblock%}

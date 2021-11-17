@@ -1,0 +1,56 @@
+Movie Listing and Selection
+Selenium
+   List all movies
+   Search for a term
+   Term can be case insensitive
+   Search for an invalid term see no results
+   Select a movie
+Backend API
+   Search for all movies
+   Verify structure of search response
+   Search for a term and validate results
+   Check if a valid route works
+   Check for error in an invalid route
+   
+-------------------------------------------------------------------------------------------------------------------
+
+Seat Selection and Booking
+Selenium
+   Locate shows for a movie and click on it
+   Select seats and verify that price is correct
+   Book tickets
+   See that tickets are booked
+   Verify that booked tickets are black
+Backend API
+   Check that seat route works
+   Check error result for invalid seats
+   Verify structure of seat matrix
+   Verify booked tickets are removed from the seat matrix
+
+-------------------------------------------------------------------------------------------------------------------
+
+Movie Management
+Selenium
+   Verify that only admin can access
+   Add a show
+      Valid input for date and slot
+      Invalid input for date and slot
+         <3 days
+         Same day cant be selected twice
+      Check rooms available (BUNDLE! for 2 movies)
+      Add the show and veify it has been added
+   Remove show and verify removal
+
+   Add a movie
+      Enter valid imdb id and verify results
+      Enter invalid imdb id and check error
+      Add the movie and verify added
+   Remove movie
+BackendAPI
+   will_showdate_collide verify result
+   free_rooms verify result (BUNDLE! 2 movies)
+   addshow verfiy works for valid input
+   addshow works for invalid input
+   add movie works for valid imdb id
+   remove show route works
+   remove movie route works

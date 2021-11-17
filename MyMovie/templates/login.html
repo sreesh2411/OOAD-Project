@@ -1,0 +1,126 @@
+{% extends "layout.html" %}
+
+{% block styles %}
+<link href="/static/login.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<main class="form-login">
+   <form>
+      <h2 class="text-center" style="color: #88B04B;">MM</h1>
+         <hr>
+         <label for="inputEmail" class="visually-hidden">Email address</label>
+         <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
+         <label for="inputPassword" class="visually-hidden">Password</label>
+         <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+         <div class="container">
+            <div class="row">
+               <div class="col">
+                  <button class="w-100 btn  btn-primary" id="lbtn"  >Login</button>
+               </div>
+               <div class="col">
+                  <button class="w-100 btn  btn-primary" id="sbtn" >Signup</button>
+               </div>
+            </div>
+         </div>
+
+
+   </form>
+
+</main>
+
+<script>
+   const emailNode = document.getElementById("inputEmail")
+   const passwordNode = document.getElementById("inputPassword")
+   async function makeRequest(method,url,data){
+      console.log(method,url,data)
+      return await fetch(url, {
+         method: method,
+         headers: {
+            'Content-Type': 'application/json'
+            // 'Content-Type': 'application/x-www-form-urlencoded',
+         },
+         body: JSON.stringify(data) // body data type must match "Content-Type" header
+      });
+   }
+
+   async function login() {
+      const email = emailNode.value
+      const password = passwordNode.value
+      if (!validate()){
+         return
+      }
+      try {
+         const res = await makeRequest("POST","/api/login",{
+            email,password
+         })
+         const respData = await res.json()
+         if (res.status!=200){
+            toastr.error(respData.err)
+            emailNode.value = "";
+            passwordNode.value = "";
+         }
+         else {
+            window.location = "/"
+         }
+      }
+      catch (ex){
+         console.log(ex)
+      }
+      
+   }
+
+   function clear(){
+      emailNode.value = passwordNode.value = ""
+   }
+
+   function validate(){
+      const emailre = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+      const res = emailre.test(String(emailNode.value).toLowerCase());
+      let valid = true;
+      if (!res){
+         clear()
+         toastr.error("Email invalid")
+         valid = false;
+      }
+      if (passwordNode.value.length<5){
+         toastr.error("Password length must be >=5")
+         passwordNode.value = ""
+         valid = false;
+      }
+      return valid
+   }
+
+   async function signup() {
+      const email = emailNode.value
+      const password = passwordNode.value
+      if (!validate()){
+         return
+      }
+      const res = await makeRequest("POST","/api/signup",{
+         email,password
+      })
+      const respData = await res.json()
+      console.log(respData)
+      if (res.status!=200){
+         toastr.error(respData.err)
+         emailNode.value = "";
+         passwordNode.value = "";
+         console.log("here")
+      }
+      else {
+         console.log(respData,"here")
+         window.location = "/"
+      }
+   }
+   document.getElementById("lbtn").addEventListener("click",async (e)=>{
+      e.preventDefault()
+      await login()
+   })
+   document.getElementById("sbtn").addEventListener("click",async (e)=>{
+      e.preventDefault()
+      await signup()
+   })
+</script>
+
+{% endblock %}

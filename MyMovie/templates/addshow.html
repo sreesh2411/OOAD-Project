@@ -1,0 +1,138 @@
+{%extends "layout.html"%}
+{%block styles%}
+   <style>
+      .selection {
+         display: flex;
+         flex-direction: column;
+         margin: auto;
+         width: 20rem;
+      }
+      .selection div {
+         padding: 0.7rem;
+         display: flex;
+         flex-direction: row;
+         align-items: center;
+         justify-content: space-between;
+         font-weight: bold;
+      }
+      
+   </style>
+{%endblock%}
+
+{%block content%}
+{%include "navbar.html"%}
+<h1 class="text-center">
+   Add a show for: {{movie.data['Title']}}
+</h1>
+<hr>
+<div class="selection">
+   <div>
+      <label for="">Select Date</label>
+      <input type="date" id="date">
+   </div>
+   
+   <div>
+      <label for="">Select Slot</label>
+      <select name="" id="slot">
+         <option value="9:AM">9:AM</option>
+         <option value="12:PM">12:PM</option>
+         <option value="3:PM">3:PM</option>
+         <option value="6:PM">6:PM</option>
+         <option value="9:PM">9:PM</option>
+      </select>
+   </div>
+   
+   <div>
+      <button onclick="getAvailableRooms()">Get available rooms</button>
+   </div>
+   
+   <div>
+      <label for="">Rooms</label>
+      <select id="room">
+      </select>
+      
+   </div>
+   
+   <div>
+      <label for="">Price</label>
+      <input type="number" id="price">
+   </div>
+   <div>
+      <button id="addshow" onclick="addShow()">Add show</button>
+   </div>
+</div>
+
+
+<script>
+   var mid = "{{movie.data['_id']}}";
+   function checkShow3Days(){
+      console.log("here")
+      const now = new Date()
+      now.setHours(0)
+      now.setMinutes(0)
+      now.setSeconds(0)
+      now.setMilliseconds(0)
+      let d = document.getElementById("date").value
+      d = new Date(d)
+      if (d-now<=(3*24*60*60*1000)){
+         toastr.error("Show Date must be atleast 3 days later")
+         document.getElementById("date").value = ""
+         return false;
+      }
+      else {
+         console.log(d-now)
+      }
+      return true;
+      
+   }
+   async function checkShowDate(){
+      if (!checkShow3Days()){
+         return
+      }
+      const date = document.getElementById("date")
+      const res = await postRequest(`/movie/${mid}/will_showdate_collide`,{"date":date.value})
+      if (res['result']){
+         date.value = ""
+         document.getElementById("slot").value = ""
+         toastr.error("Movie date not available")
+         return false
+      }
+      return true
+   }
+   async function getAvailableRooms(){
+      const date = document.getElementById("date")
+      const slot = document.getElementById("slot").value
+      if (!await checkShowDate()){
+         return
+      }
+      const res = await postRequest(`/movie/${mid}/free_rooms`,{"date":date.value,slot})
+      console.log(res)
+      document.getElementById("room").innerHTML = "";
+      if (res['result']){
+         res['result'].forEach(v=>{
+            const option = document.createElement("option")
+            option.innerHTML = v
+            option.value = v
+            document.getElementById("room").appendChild(option)
+         })
+      }
+   }
+
+   async function addShow(){
+      const showdate = document.getElementById("date")
+      const slot = document.getElementById("slot").value
+      const room =  document.getElementById("room").value
+      const price = document.getElementById("price").value
+      const res = await postRequest(`/movie/${mid}/addshow`,{date:showdate.value,slot,room,price})
+      if (res['err']){
+         toastr.err(res['err'])
+      }
+      else {
+         window.location = `/movie/${mid}`
+      }
+      
+   }
+   <!-- document.querySelector("#date").addEventListener("change",checkShow3Days) -->
+</script>
+
+{%endblock%}

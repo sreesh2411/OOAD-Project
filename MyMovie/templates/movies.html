@@ -1,0 +1,113 @@
+{%extends "layout.html"%}
+{%block styles%}
+<link rel="stylesheet" href="/static/movies.css">
+<style>
+   .movieItem {
+      border: 1px solid black;
+      margin: 2rem;
+      display: inline-block;
+      padding: 1rem;
+      width: 25rem;
+      height: 35rem;
+      
+      vertical-align: middle;
+   }
+
+   .movieItem div:hover {
+      cursor: pointer;
+   }
+   .movieItem div {
+      width: 100%;
+      height: 80%;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+   }
+   .movieItem h1 {
+      font-size: 8rem;
+      text-align: center;
+   }
+   .movieItem h3 {
+      text-align: center;
+   }
+</style>
+{%endblock%}
+
+{%block content%}
+{%include "navbar.html"%}
+<main>
+   <div>
+      <input class="w-80" type="text" id="search_text">
+      <button id="search_movie">Search</button>
+   </div>
+   <h1>Movies</h1>
+   <div class="movies">
+      
+   </div>
+</main>
+<script>
+   async function makeRequest(method, url, data = undefined) {
+      const req = {
+         method: method,
+         headers: {
+            'Content-Type': 'application/json'
+         },
+      }
+      if (req.method == "POST") {
+         req.body = JSON.stringify(data || {})
+      }
+      return await fetch(url, req);
+   }
+   function makeMovieItem(id, title, imageSrc) {
+      const div = document.createElement("div")
+      const divbg = document.createElement("div")
+      const h3 = document.createElement("h3")
+      const hb = document.createElement("h1")
+      hb.innerHTML = title.slice(0,2)
+      hb.style.color = "white"
+      h3.innerHTML = title
+       divbg.style.backgroundImage = `url(${imageSrc})` 
+      divbg.style.backgroundColor="#1a1a1a"
+      //divbg.appendChild(hb)
+      div.classList.add("movieItem")
+      div.appendChild(divbg)
+      div.appendChild(h3)
+      divbg.onclick = function () {
+         window.location = `/movie/${id}`
+      }
+      return div
+   }
+   function populateMovies(movieList){
+      document.querySelector(".movies").innerHTML = ""
+      movieList.forEach((d) => {
+         const item = makeMovieItem(
+            d._id['$oid'],
+            d.Title,
+            d.Poster
+         )
+         document.querySelector(".movies").appendChild(item)
+      })
+   }
+   async function listDefault() {
+      const res = await makeRequest("POST", "/search")
+      const data = await res.json()
+      populateMovies(data)
+   }
+   async function searchMovies(term){
+      const res = await makeRequest("POST", "/search",{term})
+      const data = await res.json()
+      populateMovies(data)
+   }
+
+   document.getElementById("search_movie").addEventListener("click",function(e){
+      const term = document.getElementById("search_text").value
+      searchMovies(term)
+   })
+
+   listDefault()
+</script>
+{%endblock%}

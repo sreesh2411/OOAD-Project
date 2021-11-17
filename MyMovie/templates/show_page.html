@@ -1,0 +1,154 @@
+{%extends "layout.html"%}
+{%block styles%}
+<link rel="stylesheet" href="/static/movies.css">
+<style>
+.bg {
+   width: 30rem;
+   height: 30rem;
+   display: flex;
+   padding: 1rem;
+   align-items: center;
+   justify-content: center;
+   background-color: #1a1a1a;
+   color: white;
+   background-size: cover;
+   background-repeat: no-repeat;
+   background-position: center;
+}
+.bg h3 {
+   font-size: 10rem;
+}
+.seat {
+   display: inline-block;
+   margin: 0.5rem;
+   height: 5rem;
+   width: 5rem;
+   background-color: orange;
+   border: 0.2rem solid black;
+}
+
+.seats {
+   display: flex;
+   align-items: center;
+   flex-direction: column;
+   margin-bottom: 2rem;
+}
+
+.selected {
+   background-color: green;
+}
+
+.unavailable {
+   background-color: black;
+}
+
+.seat:not(.unavailable):hover{
+   border: 0.2rem solid #1f1f1f;
+   cursor: pointer;
+}
+.book {
+   margin-top: 2rem;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+}
+
+.start  {
+   margin-left: 1rem;
+}
+
+.admin_action {
+   margin-left: 1rem;
+}
+
+</style>
+{%endblock%}
+
+{%block content%}
+{%include "navbar.html"%}
+<main>
+   <div class="start">
+      <h1>Book your seat</h1>
+      <h2 class="text-center">{{m.data['Title']}} (SCREEN - {{show['room']}})</h1>
+   </div>
+   <div class="seats">
+      {% for i in range(4)%}
+         <div>
+         {%for j in range(10)%}
+            {%if j in show['tickets'][i]%}
+               <div class="seat" data-i="{{i}}" data-j="{{j}}"></div>
+            {%else%}
+               <div class="seat unavailable" data-i="{{i}}" data-j="{{j}}"></div>
+            {%endif%}
+         {%endfor%}
+         </div>
+      {%endfor%}
+   </div>
+   <div class="price">
+      <h4>Base Price {{show['price']}}</h4>
+   </div>
+   <div class="book" style="display: none;">
+      <h4 id="price"></h4>
+      <button id="bookb">Book Tickets</button>
+   </div>
+   <hr>
+   {%if admin %}
+   <div class="admin_action">
+         <h2>Admin Actions</h2>
+         <button style="margin-left: 1rem;" class="btn btn-danger" id="remove_show">Remove Show</button>
+      
+   </div>
+   {%endif%}
+</main>
+<script>
+   var mid = "{{m.data['_id']}}";
+   var sid = "{{show['id']}}";
+   let selected = []
+   let book = document.querySelector(".book")
+   let price = 0
+   let priceElem = document.querySelector("#price")
+   let ticketCost = parseFloat("{{show['price']}}")
+   function updateBook(){
+      if (selected.length){
+         book.style.display="flex"
+      }
+      else {
+         book.style.display="none"
+      }
+      priceElem.innerHTML = price.toFixed(2)
+   }
+   function toggleSeat(elem){
+      const i = parseInt(elem.getAttribute("data-i"))
+      const seat = elem.getAttribute("data-i")+elem.getAttribute("data-j")
+      if (!elem.classList.contains("unavailable")){
+         if (!elem.classList.contains("selected")){
+            selected.push(seat)
+            elem.classList.add("selected")
+            price+=ticketCost*(1+i/3)
+         }
+         else {
+            selected = selected.filter(v=>v!=seat)
+            elem.classList.remove("selected")
+            price-=ticketCost*(1+i/3)
+         }
+         updateBook()
+      }
+   }
+
+   async function bookTickets(){
+      await postRequest(`/movie/${mid}/${sid}/book`,{
+         tickets:selected
+      })
+      window.location = "/tickets"
+   }
+   document.querySelector("#bookb").addEventListener("click",bookTickets)
+   document.querySelectorAll(".seat").forEach(v=>{
+      v.addEventListener("click",()=>toggleSeat(v))
+   })
+   document.querySelector("#remove_show").addEventListener("click",async ()=>{
+      await postRequest("/remove/"+mid+"/"+sid)
+      window.location = `/movie/${mid}`
+   })
+</script>
+{%endblock%}
